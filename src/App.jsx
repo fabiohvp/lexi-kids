@@ -2,6 +2,9 @@ import { Award, Play, Sparkles, Trophy, Volume2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { PALAVRAS_BASE } from './database';
 
+const LEVEL_POINTS = 10;
+const audioCache = new Map();
+
 export default function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [score, setScore] = useState(0);
@@ -17,9 +20,27 @@ export default function App() {
 
   // Atualiza o nível com base na pontuação (Sobe a cada 10 pontos)
   useEffect(() => {
-    const calculatedLevel = Math.floor(score / 10) + 1;
+    const calculatedLevel = Math.floor(score / LEVEL_POINTS) + 1;
     setLevel(calculatedLevel);
+
+	if (score > 0 && score % LEVEL_POINTS === 0) {
+			playSound("/level-up.mp3"); // ou o som de "level up"
+		}
   }, [score]);
+
+	async function playSound(src) {
+		let audio = audioCache.get(src);
+
+		if (!audio) {
+			audio = new Audio(src);
+			audioCache.set(src, audio);
+		}
+
+		// Restart if it's already playing
+		audio.currentTime = 0;
+
+		await audio.play();
+	}
 
   // Função para reproduzir a palavra usando a API de fala do navegador
   const speakWord = (wordText) => {
@@ -214,7 +235,7 @@ export default function App() {
 
     if (allRight) {
       setCompleted(true);
-      speakWord("Muito bem!");
+      playSound("/point-up.mp3");
 
       setScore(prev => prev + 1);
 
