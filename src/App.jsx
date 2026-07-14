@@ -1,9 +1,12 @@
 import { Award, Play, Sparkles, Trophy, Volume2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { PALAVRAS_BASE } from './database';
+import Test from './Test';
 
 const LEVEL_POINTS = 10;
 const audioCache = new Map();
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 export default function App() {
   const [gameStarted, setGameStarted] = useState(false);
@@ -13,6 +16,7 @@ export default function App() {
   const [wordLayout, setWordLayout] = useState([]); // Array indicando a configuração das letras
   const [userInputs, setUserInputs] = useState({}); // Letras digitadas pelo usuário
   const [completed, setCompleted] = useState(false);
+  const [showTest, setShowTest] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState('enter'); // 'enter', 'exit'
   const [mistakes, setMistakes] = useState({}); // track correct/incorrect indices
@@ -269,6 +273,10 @@ export default function App() {
     }
   };
 
+  if (showTest) {
+    return <Test onBack={() => { setShowTest(false); selectNextWord(level); }} />;
+  }
+
   // Se o jogo ainda não foi iniciado, mostramos a tela inicial lúdica (evita o bloqueio de áudio do navegador)
   if (!gameStarted) {
     return (
@@ -279,13 +287,23 @@ export default function App() {
           <p className="text-base font-bold text-gray-500 mb-8">
             Vamos aprender as letrinhas das palavras brincando! Pronto para começar?
           </p>
-          <button
-            onClick={startGame}
-            className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-2xl rounded-3xl border-b-8 border-emerald-700 hover:border-b-4 hover:translate-y-[4px] active:translate-y-[8px] active:border-b-0 transition-all shadow-lg"
-          >
-            <Play className="w-8 h-8 fill-current" />
-            JOGAR!
-          </button>
+          <div className="flex flex-col gap-4">
+            <button
+              onClick={startGame}
+              className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-2xl rounded-3xl border-b-8 border-emerald-700 hover:border-b-4 hover:translate-y-[4px] active:translate-y-[8px] active:border-b-0 transition-all shadow-lg"
+            >
+              <Play className="w-8 h-8 fill-current" />
+              JOGAR!
+            </button>
+            {isLocalhost && (
+              <button
+                onClick={() => setShowTest(true)}
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black text-xl rounded-2xl border-b-8 border-yellow-600 hover:border-b-4 hover:translate-y-[4px] active:translate-y-[8px] active:border-b-0 transition-all shadow-md"
+              >
+                ⚙️ MODO TESTE
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -306,6 +324,14 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-4">
+          {isLocalhost && (
+            <button
+              onClick={() => setShowTest(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black text-xs md:text-sm rounded-2xl border-b-4 border-yellow-600 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] transition-all shadow-sm shadow-yellow-500/30"
+            >
+              ⚙️ TESTE
+            </button>
+          )}
           <div className="flex items-center gap-1 bg-amber-100 px-3 py-1.5 rounded-2xl border-2 border-amber-300">
             <Trophy className="w-5 h-5 text-amber-500" />
             <span className="text-sm md:text-base font-black text-amber-700">PONTOS: {score}</span>
