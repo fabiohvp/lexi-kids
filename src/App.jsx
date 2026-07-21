@@ -79,6 +79,13 @@ export default function App() {
     }
   };
 
+  const handlePageClick = (e) => {
+    if (e.target.closest('button') || e.target.closest('input')) {
+      return;
+    }
+    focusActiveInput();
+  };
+
   // Parâmetros de nível para esconder as letras
   const getLevelParameters = (wordLength, lvl) => {
     let missingCount = 1;
@@ -437,10 +444,26 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-4 md:p-6 text-[#2D3748] overflow-x-hidden">
+    <div onClick={handlePageClick} className="min-h-screen flex flex-col justify-between p-4 md:p-6 text-[#2D3748] overflow-x-hidden">
       {/* Top Header stats bar */}
       <header className="w-full max-w-4xl mx-auto flex flex-col sm:flex-row gap-4 items-center justify-between bg-white/80 backdrop-blur-md rounded-3xl p-4 md:px-8 kid-shadow border-4 border-blue-400">
-        <div className="flex items-center gap-3">
+        <div 
+          onClick={() => {
+            setGameStarted(false);
+            setScore(0);
+            setLevel(1);
+          }} 
+          className="flex items-center gap-3 cursor-pointer select-none hover:opacity-80 active:scale-95 transition-all"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { 
+            if (e.key === 'Enter' || e.key === ' ') {
+              setGameStarted(false);
+              setScore(0);
+              setLevel(1);
+            }
+          }}
+        >
           <img src="/logo.svg" alt="Lexi Kids Logo" className="w-12 h-12 rounded-2xl border-2 border-blue-300 shadow-sm animate-bounce-gentle object-cover" />
           <div className="text-center sm:text-left">
             <h1 className="text-xl md:text-2xl font-black text-blue-600 tracking-wide">LEXI KIDS</h1>
@@ -562,8 +585,8 @@ export default function App() {
                   <SkipForward className="w-5 h-5 sm:w-6 sm:h-6" />
                   PULAR PALAVRA
                 </button>
-                <div className="text-sm font-bold text-gray-400 text-center sm:text-left max-w-xs space-y-1 w-full">
-                  <p className="text-blue-500 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">⌨️ Aperte <b>Espaço</b> para ouvir!</p>
+                <div className="text-sm font-bold text-gray-400 self-center text-center sm:text-left max-w-xs space-y-1 w-full">
+                  <p className="text-blue-500 text-center bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">⌨️ Aperte <b>Espaço</b> para ouvir!</p>
                 </div>
               </div>
 
