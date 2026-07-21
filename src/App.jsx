@@ -59,6 +59,15 @@ export default function App() {
     }
   };
 
+  const focusActiveInput = () => {
+    if (gameStarted && !completed && wordLayout.length > 0) {
+      const firstMissingItem = wordLayout.find(item => item.isHidden && !userInputs[item.index]);
+      if (firstMissingItem && inputRefs.current[firstMissingItem.index]) {
+        inputRefs.current[firstMissingItem.index].focus();
+      }
+    }
+  };
+
   // Parâmetros de nível para esconder as letras
   const getLevelParameters = (wordLength, lvl) => {
     let missingCount = 1;
@@ -186,6 +195,7 @@ export default function App() {
         e.preventDefault(); // Evita que a página role para baixo
         if (currentWord && gameStarted) {
           speakWord(currentWord.name);
+          focusActiveInput();
         }
       }
     };
@@ -194,16 +204,11 @@ export default function App() {
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, [currentWord, gameStarted]);
+  }, [currentWord, gameStarted, userInputs, wordLayout, completed]);
 
   // Foco automático no primeiro input vazio disponível
   useEffect(() => {
-    if (gameStarted && !completed && wordLayout.length > 0) {
-      const firstMissingItem = wordLayout.find(item => item.isHidden && !userInputs[item.index]);
-      if (firstMissingItem && inputRefs.current[firstMissingItem.index]) {
-        inputRefs.current[firstMissingItem.index].focus();
-      }
-    }
+    focusActiveInput();
   }, [wordLayout, completed, gameStarted]);
 
   // Manipulador de digitação das letrinhas
@@ -387,27 +392,6 @@ export default function App() {
                   {currentWord.category === 'animal' ? '🦁 ANIMAL' : currentWord.category === 'numero' ? '🔢 NÚMERO' : '🛋️ OBJETO'}
                 </span>
               </div>
-
-              <div className="flex flex-col items-center sm:items-start gap-4 w-full sm:w-auto">
-                <button
-                  onClick={() => speakWord(currentWord.name)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-sm sm:text-base rounded-2xl border-b-4 border-emerald-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md"
-                >
-                  <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                  OUVIR PALAVRA
-                </button>
-                <button
-                  onClick={handleSkip}
-                  disabled={completed}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-amber-500 hover:bg-amber-400 text-white font-black text-sm sm:text-base rounded-2xl border-b-4 border-amber-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:border-b-0 disabled:translate-y-0"
-                >
-                  <SkipForward className="w-5 h-5 sm:w-6 sm:h-6" />
-                  PULAR PALAVRA
-                </button>
-                <div className="text-sm font-bold text-gray-400 text-center sm:text-left max-w-xs space-y-1 w-full">
-                  <p className="text-blue-500 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">⌨️ Aperte <b>Espaço</b> para ouvir!</p>
-                </div>
-              </div>
             </div>
 
             {/* Alphabet Blocks / Game Play Board */}
@@ -463,6 +447,30 @@ export default function App() {
                 );
               })}
             </div>
+
+              <div className="flex flex-col items-center sm:items-start gap-4 w-full sm:w-auto">
+                <button
+                  onClick={() => {
+                    speakWord(currentWord.name);
+                    focusActiveInput();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-sm sm:text-base rounded-2xl border-b-4 border-emerald-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md"
+                >
+                  <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                  OUVIR PALAVRA
+                </button>
+                <button
+                  onClick={handleSkip}
+                  disabled={completed}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-amber-500 hover:bg-amber-400 text-white font-black text-sm sm:text-base rounded-2xl border-b-4 border-amber-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:border-b-0 disabled:translate-y-0"
+                >
+                  <SkipForward className="w-5 h-5 sm:w-6 sm:h-6" />
+                  PULAR PALAVRA
+                </button>
+                <div className="text-sm font-bold text-gray-400 text-center sm:text-left max-w-xs space-y-1 w-full">
+                  <p className="text-blue-500 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">⌨️ Aperte <b>Espaço</b> para ouvir!</p>
+                </div>
+              </div>
 
             <div className="h-12 flex items-center justify-center">
               {completed ? (
