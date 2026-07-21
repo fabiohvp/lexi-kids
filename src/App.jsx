@@ -282,7 +282,7 @@ export default function App() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white rounded-[40px] p-8 md:p-12 kid-shadow border-8 border-yellow-400 max-w-md w-full transform hover:scale-102 transition-transform">
-          <div className="text-8xl mb-6 animate-bounce-gentle">✏️🎒</div>
+          <img src="/logo.svg" alt="Lexi Kids Logo" className="w-32 h-32 mx-auto mb-6 rounded-[32px] shadow-md animate-bounce-gentle border-4 border-yellow-300 object-cover" />
           <h1 className="text-3xl md:text-4xl font-black text-blue-600 tracking-wide mb-4">LEXI KIDS</h1>
           <p className="text-base font-bold text-gray-500 mb-8">
             Vamos aprender as letrinhas das palavras brincando! Pronto para começar?
@@ -314,9 +314,7 @@ export default function App() {
       {/* Top Header stats bar */}
       <header className="w-full max-w-4xl mx-auto flex items-center justify-between bg-white/80 backdrop-blur-md rounded-3xl p-4 md:px-8 kid-shadow border-4 border-blue-400">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-yellow-400 flex items-center justify-center text-2xl font-bold border-2 border-yellow-500 shadow-sm animate-bounce-gentle">
-            ✏️
-          </div>
+          <img src="/logo.svg" alt="Lexi Kids Logo" className="w-12 h-12 rounded-2xl border-2 border-blue-300 shadow-sm animate-bounce-gentle object-cover" />
           <div>
             <h1 className="text-xl md:text-2xl font-black text-blue-600 tracking-wide">LEXI KIDS</h1>
             <p className="text-xs md:text-sm font-bold text-gray-500">Aprender brincando é divertido!</p>
