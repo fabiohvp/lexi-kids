@@ -41,7 +41,7 @@ export const OBJETOS_COMUNS = [
 		"icon": "🚩"
 	},
 	{
-		"name": "BAÚ",
+		"name": "MALA",
 		"category": "objeto",
 		"icon": "🧳"
 	},
