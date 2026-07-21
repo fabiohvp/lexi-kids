@@ -152,6 +152,7 @@ export default function App() {
     setCurrentWord(wordObj);
     setTransitionDirection('enter');
     setIsTransitioning(false);
+    window.scrollTo(0, 0);
 
     // Reproduz o áudio imediatamente
     speakWord(wordObj.name);
@@ -280,7 +281,7 @@ export default function App() {
   // Se o jogo ainda não foi iniciado, mostramos a tela inicial lúdica (evita o bloqueio de áudio do navegador)
   if (!gameStarted) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center overflow-x-hidden">
         <div className="bg-white rounded-[40px] p-8 md:p-12 kid-shadow border-8 border-yellow-400 max-w-md w-full transform hover:scale-102 transition-transform">
           <img src="/logo.svg" alt="Lexi Kids Logo" className="w-32 h-32 mx-auto mb-6 rounded-[32px] shadow-md animate-bounce-gentle border-4 border-yellow-300 object-cover" />
           <h1 className="text-3xl md:text-4xl font-black text-blue-600 tracking-wide mb-4">LEXI KIDS</h1>
@@ -310,18 +311,18 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-4 md:p-6 text-[#2D3748]">
+    <div className="min-h-screen flex flex-col justify-between p-4 md:p-6 text-[#2D3748] overflow-x-hidden">
       {/* Top Header stats bar */}
-      <header className="w-full max-w-4xl mx-auto flex items-center justify-between bg-white/80 backdrop-blur-md rounded-3xl p-4 md:px-8 kid-shadow border-4 border-blue-400">
+      <header className="w-full max-w-4xl mx-auto flex flex-col sm:flex-row gap-4 items-center justify-between bg-white/80 backdrop-blur-md rounded-3xl p-4 md:px-8 kid-shadow border-4 border-blue-400">
         <div className="flex items-center gap-3">
           <img src="/logo.svg" alt="Lexi Kids Logo" className="w-12 h-12 rounded-2xl border-2 border-blue-300 shadow-sm animate-bounce-gentle object-cover" />
-          <div>
+          <div className="text-center sm:text-left">
             <h1 className="text-xl md:text-2xl font-black text-blue-600 tracking-wide">LEXI KIDS</h1>
-            <p className="text-xs md:text-sm font-bold text-gray-500">Aprender brincando é divertido!</p>
+            <p className="text-xs md:text-sm font-bold text-gray-500 hidden sm:block">Aprender brincando é divertido!</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4">
           {isLocalhost && (
             <button
               onClick={() => setShowTest(true)}
@@ -342,7 +343,7 @@ export default function App() {
       </header>
 
       {/* Main Game Screen */}
-      <main className="flex-1 w-full max-w-4xl mx-auto flex flex-col items-center justify-center my-6">
+      <main className="flex-1 w-full max-w-4xl mx-auto flex flex-col items-center justify-center my-6 overflow-hidden relative">
         {currentWord ? (
           <div className={`w-full bg-white rounded-[40px] p-6 md:p-12 kid-shadow border-8 border-orange-300 transition-all duration-500 transform 
             ${transitionDirection === 'enter' ? 'translate-x-0 opacity-100 scale-100' : ''}
@@ -362,13 +363,12 @@ export default function App() {
               <div className="flex flex-col items-center sm:items-start gap-4">
                 <button
                   onClick={() => speakWord(currentWord.name)}
-                  className="flex items-center gap-2 px-6 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-lg md:text-xl rounded-2xl border-b-8 border-emerald-700 hover:border-b-4 hover:translate-y-[4px] active:translate-y-[8px] active:border-b-0 transition-all shadow-lg"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-sm sm:text-base rounded-2xl border-b-4 border-emerald-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md"
                 >
-                  <Volume2 className="w-7 h-7" />
-                  OUVIR PALAVRA 🔊
+                  <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                  OUVIR PALAVRA
                 </button>
                 <div className="text-sm font-bold text-gray-400 text-center sm:text-left max-w-xs space-y-1">
-                  <p>💡 Dica: digite as letrinhas amarelas!</p>
                   <p className="text-blue-500 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">⌨️ Aperte <b>Espaço</b> para ouvir!</p>
                 </div>
               </div>
