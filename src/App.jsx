@@ -352,11 +352,13 @@ export default function App() {
             {/* Interactive Image & Pronounce Audio Button */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-8">
               <div className="relative group">
-                <div className="w-48 h-48 md:w-56 md:h-56 bg-sky-100 rounded-[35px] border-4 border-sky-300 flex items-center justify-center text-8xl md:text-9xl kid-shadow transform group-hover:scale-105 transition-transform">
+                <div className={`w-48 h-48 md:w-56 md:h-56 bg-sky-100 rounded-[35px] border-4 border-sky-300 flex items-center justify-center kid-shadow transform group-hover:scale-105 transition-transform ${
+                  currentWord.icon.length > 2 ? 'text-5xl md:text-6xl font-black' : currentWord.icon.length > 1 ? 'text-7xl md:text-8xl font-black' : 'text-8xl md:text-9xl'
+                }`}>
                   {currentWord.icon}
                 </div>
                 <span className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 border-2 border-yellow-500 text-yellow-900 font-bold px-4 py-1 rounded-full text-xs tracking-widest uppercase">
-                  {currentWord.category === 'animal' ? '🦁 ANIMAL' : '🛋️ OBJETO'}
+                  {currentWord.category === 'animal' ? '🦁 ANIMAL' : currentWord.category === 'numero' ? '🔢 NÚMERO' : '🛋️ OBJETO'}
                 </span>
               </div>
 

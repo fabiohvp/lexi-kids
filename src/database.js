@@ -1380,5 +1380,27 @@ export const ANIMAIS_COMUNS = [
 	}
 ];
 
+function getPortugueseNumberName(n) {
+	const units = ["ZERO", "UM", "DOIS", "TRÊS", "QUATRO", "CINCO", "SEIS", "SETE", "OITO", "NOVE"];
+	const teens = ["DEZ", "ONZE", "DOZE", "TREZE", "CATORZE", "QUINZE", "DEZESSEIS", "DEZESSETE", "DEZOITO", "DEZENOVE"];
+	const tens = ["", "", "VINTE", "TRINTA", "QUARENTA", "CINQUENTA", "SESSENTA", "SETENTA", "OITENTA", "NOVENTA"];
+
+	if (n === 100) return "CEM";
+	if (n < 10) return units[n];
+	if (n >= 10 && n < 20) return teens[n - 10];
+
+	const unitDigit = n % 10;
+	const tenDigit = Math.floor(n / 10);
+
+	if (unitDigit === 0) return tens[tenDigit];
+	return `${tens[tenDigit]} E ${units[unitDigit]}`;
+}
+
+export const NUMEROS = Array.from({ length: 21 }, (_, i) => ({
+	name: getPortugueseNumberName(i),
+	category: "numero",
+	icon: String(i)
+}));
+
 // Combine both lists into the final base of data
-export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS];
+export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS];

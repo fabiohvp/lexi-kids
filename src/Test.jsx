@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Volume2, Trash2, ArrowRight, ArrowLeft, Download, RotateCcw } from 'lucide-react';
-import { OBJETOS_COMUNS, ANIMAIS_COMUNS } from './database';
+import { OBJETOS_COMUNS, ANIMAIS_COMUNS, NUMEROS } from './database';
 
 export default function Test({ onBack }) {
   // Mantém a lista de palavras unificada em memória para edição em tempo real
@@ -10,7 +10,7 @@ export default function Test({ onBack }) {
 
   // Inicializa os estados locais a partir das constantes importadas apenas uma vez no mount (mantém ordem estável durante edição)
   useEffect(() => {
-    const combined = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS];
+    const combined = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS];
     const sorted = combined.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
     setWords(sorted);
   }, []);
@@ -87,7 +87,7 @@ export default function Test({ onBack }) {
   // Restaura o banco de dados original em memória
   const handleReset = () => {
     if (window.confirm("Deseja redefinir a base de dados em memória para o padrão original?")) {
-      const combined = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS];
+      const combined = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS];
       const sorted = combined.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
       setWords(sorted);
       setCurrentIndex(0);
@@ -99,14 +99,17 @@ export default function Test({ onBack }) {
   const handleDownload = () => {
     const objetos = words.filter(w => w.category === 'objeto');
     const animais = words.filter(w => w.category === 'animal');
+    const numeros = words.filter(w => w.category === 'numero');
 
     const fileContent = `// Banco de dados de objetos comuns e animais comuns editado
 export const OBJETOS_COMUNS = ${JSON.stringify(objetos, null, 2)};
 
 export const ANIMAIS_COMUNS = ${JSON.stringify(animais, null, 2)};
 
+export const NUMEROS = ${JSON.stringify(numeros, null, 2)};
+
 // Combine both lists into the final base of data
-export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS];
+export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS];
 `;
 
     const blob = new Blob([fileContent], { type: 'text/javascript' });
@@ -230,11 +233,13 @@ export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS];
               
               {/* Representação Visual da Palavra */}
               <div className="relative group">
-                <div className="w-48 h-48 md:w-56 md:h-56 bg-sky-100 rounded-[35px] border-4 border-sky-300 flex items-center justify-center text-8xl md:text-9xl kid-shadow transform group-hover:scale-105 transition-transform">
+                <div className={`w-48 h-48 md:w-56 md:h-56 bg-sky-100 rounded-[35px] border-4 border-sky-300 flex items-center justify-center kid-shadow transform group-hover:scale-105 transition-transform ${
+                  currentWord.icon.length > 2 ? 'text-5xl md:text-6xl font-black' : currentWord.icon.length > 1 ? 'text-7xl md:text-8xl font-black' : 'text-8xl md:text-9xl'
+                }`}>
                   {currentWord.icon}
                 </div>
                 <span className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 border-2 border-yellow-500 text-yellow-900 font-bold px-4 py-1 rounded-full text-xs tracking-widest uppercase">
-                  {currentWord.category === 'animal' ? '🦁 ANIMAL' : '🛋️ OBJETO'}
+                  {currentWord.category === 'animal' ? '🦁 ANIMAL' : currentWord.category === 'numero' ? '🔢 NÚMERO' : '🛋️ OBJETO'}
                 </span>
               </div>
 
