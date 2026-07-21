@@ -1,4 +1,4 @@
-import { Award, Play, Sparkles, Trophy, Volume2 } from 'lucide-react';
+import { Award, Play, SkipForward, Sparkles, Trophy, Volume2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { PALAVRAS_BASE } from './database';
 import Test from './Test';
@@ -21,6 +21,7 @@ export default function App() {
   const [transitionDirection, setTransitionDirection] = useState('enter'); // 'enter', 'exit'
   const [mistakes, setMistakes] = useState({}); // track correct/incorrect indices
   const inputRefs = useRef([]);
+  const wordHistoryRef = useRef([]);
 
   // Atualiza o nível com base na pontuação (Sobe a cada 10 pontos)
   useEffect(() => {
@@ -111,7 +112,21 @@ export default function App() {
       filtered = PALAVRAS_BASE;
     }
 
+    // Filtra as palavras para não repetir as últimas 5
+    const history = wordHistoryRef.current;
+    const available = filtered.filter(w => !history.includes(w.name));
+    if (available.length > 0) {
+      filtered = available;
+    }
+
     const wordObj = filtered[Math.floor(Math.random() * filtered.length)];
+
+    // Atualiza o histórico
+    const nextHistory = [...history, wordObj.name];
+    if (nextHistory.length > 5) {
+      nextHistory.shift();
+    }
+    wordHistoryRef.current = nextHistory;
     const cleanName = wordObj.name.toUpperCase();
     const len = cleanName.length;
 
@@ -259,6 +274,17 @@ export default function App() {
     }
   };
 
+  const handleSkip = () => {
+    if (completed || isTransitioning) return;
+    
+    setTransitionDirection('exit');
+    setIsTransitioning(true);
+
+    setTimeout(() => {
+      selectNextWord(level);
+    }, 500);
+  };
+
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !userInputs[index]) {
       const prevMissingIndex = [...wordLayout]
@@ -362,15 +388,23 @@ export default function App() {
                 </span>
               </div>
 
-              <div className="flex flex-col items-center sm:items-start gap-4">
+              <div className="flex flex-col items-center sm:items-start gap-4 w-full sm:w-auto">
                 <button
                   onClick={() => speakWord(currentWord.name)}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-sm sm:text-base rounded-2xl border-b-4 border-emerald-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-sm sm:text-base rounded-2xl border-b-4 border-emerald-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md"
                 >
                   <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
                   OUVIR PALAVRA
                 </button>
-                <div className="text-sm font-bold text-gray-400 text-center sm:text-left max-w-xs space-y-1">
+                <button
+                  onClick={handleSkip}
+                  disabled={completed}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-amber-500 hover:bg-amber-400 text-white font-black text-sm sm:text-base rounded-2xl border-b-4 border-amber-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:border-b-0 disabled:translate-y-0"
+                >
+                  <SkipForward className="w-5 h-5 sm:w-6 sm:h-6" />
+                  PULAR PALAVRA
+                </button>
+                <div className="text-sm font-bold text-gray-400 text-center sm:text-left max-w-xs space-y-1 w-full">
                   <p className="text-blue-500 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">⌨️ Aperte <b>Espaço</b> para ouvir!</p>
                 </div>
               </div>
