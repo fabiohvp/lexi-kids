@@ -215,6 +215,21 @@ export default function App() {
   const handleInputChange = (index, val) => {
     if (completed) return;
 
+    // Detecta se o usuário digitou espaço no teclado virtual do celular
+    if (val && val.endsWith(' ')) {
+      if (currentWord && gameStarted) {
+        speakWord(currentWord.name);
+      }
+      const prevVal = userInputs[index] || '';
+      setUserInputs(prev => ({ ...prev, [index]: prevVal }));
+      setTimeout(() => {
+        if (inputRefs.current[index]) {
+          inputRefs.current[index].focus();
+        }
+      }, 50);
+      return;
+    }
+
     const charTyped = val.toUpperCase().trim().slice(-1);
     if (!charTyped) {
       setUserInputs(prev => ({ ...prev, [index]: '' }));
@@ -434,7 +449,7 @@ export default function App() {
                     key={idx}
                     ref={(el) => (inputRefs.current[idx] = el)}
                     type="text"
-                    maxLength={1}
+                    maxLength={2}
                     value={userInputs[idx] || ''}
                     onChange={(e) => handleInputChange(idx, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(idx, e)}
