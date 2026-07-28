@@ -25,23 +25,34 @@ export default function App() {
     const parsed = Number(saved);
     return (parsed >= 10 && parsed <= 50) ? parsed : 10;
   });
+  const [startLevel, setStartLevel] = useState(() => {
+    const saved = localStorage.getItem('lexi_kids_start_level');
+    const parsed = Number(saved);
+    return (parsed >= 1 && parsed <= 8) ? parsed : 1;
+  });
   const inputRefs = useRef([]);
   const wordHistoryRef = useRef([]);
 
   // Atualiza o nível com base na pontuação (Sobe a cada levelPoints pontos)
   useEffect(() => {
-    const calculatedLevel = Math.floor(score / levelPoints) + 1;
+    const calculatedLevel = Math.floor(score / levelPoints) + startLevel;
     setLevel(calculatedLevel);
 
-	if (score > 0 && score % levelPoints === 0) {
-			playSound("/level-up.mp3"); // ou o som de "level up"
-		}
-  }, [score, levelPoints]);
+    if (score > 0 && score % levelPoints === 0) {
+      playSound("/level-up.mp3"); // ou o som de "level up"
+    }
+  }, [score, levelPoints, startLevel]);
 
   const handleLevelPointsChange = (value) => {
     const val = Math.max(10, Math.min(50, value));
     setLevelPoints(val);
     localStorage.setItem('lexi_kids_level_points', val);
+  };
+
+  const handleStartLevelChange = (value) => {
+    const val = Math.max(1, Math.min(8, value));
+    setStartLevel(val);
+    localStorage.setItem('lexi_kids_start_level', val);
   };
 
 	async function playSound(src) {
@@ -295,20 +306,22 @@ export default function App() {
       setCompleted(true);
       playSound("/point-up.mp3");
 
-      setScore(prev => prev + 1);
-
-      // Transição suave para a direita após 1.5 segundos
-      setTimeout(() => {
-        setTransitionDirection('exit');
-        setIsTransitioning(true);
+      setScore(prevScore => {
+        const nextScore = prevScore + 1;
+        const nextLvl = Math.floor(nextScore / levelPoints) + startLevel;
 
         setTimeout(() => {
-          const nextScore = score + 1;
-          const nextLvl = Math.floor(nextScore / levelPoints) + 1;
-          selectNextWord(nextLvl);
-        }, 500);
+          setTransitionDirection('exit');
+          setIsTransitioning(true);
 
-      }, 1500);
+          setTimeout(() => {
+            selectNextWord(nextLvl);
+          }, 500);
+
+        }, 1500);
+
+        return nextScore;
+      });
     }
   };
 
@@ -318,8 +331,10 @@ export default function App() {
     setTransitionDirection('exit');
     setIsTransitioning(true);
 
+    const currentLvl = Math.floor(score / levelPoints) + startLevel;
+
     setTimeout(() => {
-      selectNextWord(level);
+      selectNextWord(currentLvl);
     }, 500);
   };
 
@@ -426,6 +441,45 @@ export default function App() {
                   <div className="flex justify-between text-xs font-bold text-purple-400 mt-2 px-1">
                     <span>Mínimo: 10</span>
                     <span>Máximo: 50</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-purple-100">
+                  <label className="block text-base font-black text-purple-900 mb-3 text-center">
+                    Nível Inicial (1 a 8):
+                  </label>
+                  <div className="flex items-center justify-center gap-4 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => handleStartLevelChange(startLevel - 1)}
+                      disabled={startLevel <= 1}
+                      className="w-12 h-12 bg-purple-100 hover:bg-purple-200 disabled:opacity-40 disabled:hover:bg-purple-100 text-purple-700 font-black text-2xl rounded-2xl flex items-center justify-center border-b-4 border-purple-300 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-sm"
+                    >
+                      -
+                    </button>
+                    <span className="text-4xl font-black text-purple-600 w-16 text-center">
+                      {startLevel}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleStartLevelChange(startLevel + 1)}
+                      disabled={startLevel >= 8}
+                      className="w-12 h-12 bg-purple-100 hover:bg-purple-200 disabled:opacity-40 disabled:hover:bg-purple-100 text-purple-700 font-black text-2xl rounded-2xl flex items-center justify-center border-b-4 border-purple-300 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-sm"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="8"
+                    value={startLevel}
+                    onChange={(e) => handleStartLevelChange(Number(e.target.value))}
+                    className="w-full h-3 bg-purple-100 rounded-lg appearance-none cursor-pointer accent-purple-600 mt-2"
+                  />
+                  <div className="flex justify-between text-xs font-bold text-purple-400 mt-2 px-1">
+                    <span>Nível 1 (Fácil)</span>
+                    <span>Nível 8 (Máx)</span>
                   </div>
                 </div>
               </div>
