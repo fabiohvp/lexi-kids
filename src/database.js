@@ -366,11 +366,6 @@ export const OBJETOS_COMUNS = [
 		"icon": "🖨️"
 	},
 	{
-		"name": "IÔIÔ",
-		"category": "objeto",
-		"icon": "🪀"
-	},
-	{
 		"name": "LÃ",
 		"category": "objeto",
 		"icon": "🧶"
@@ -1402,5 +1397,199 @@ export const NUMEROS = Array.from({ length: 21 }, (_, i) => ({
 	icon: String(i)
 }));
 
-// Combine both lists into the final base of data
-export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS];
+export const PAISES = [
+	{
+		"name": "ALEMANHA",
+		"category": "pais",
+		"icon": "/flags/de.svg"
+	},
+	{
+		"name": "ANGOLA",
+		"category": "pais",
+		"icon": "/flags/ao.svg"
+	},
+	{
+		"name": "ARGENTINA",
+		"category": "pais",
+		"icon": "/flags/ar.svg"
+	},
+	{
+		"name": "AUSTRÁLIA",
+		"category": "pais",
+		"icon": "/flags/au.svg"
+	},
+	{
+		"name": "ÁUSTRIA",
+		"category": "pais",
+		"icon": "/flags/at.svg"
+	},
+	{
+		"name": "BÉLGICA",
+		"category": "pais",
+		"icon": "/flags/be.svg"
+	},
+	{
+		"name": "BOLÍVIA",
+		"category": "pais",
+		"icon": "/flags/bo.svg"
+	},
+	{
+		"name": "BRASIL",
+		"category": "pais",
+		"icon": "/flags/br.svg"
+	},
+	{
+		"name": "CANADÁ",
+		"category": "pais",
+		"icon": "/flags/ca.svg"
+	},
+	{
+		"name": "CHILE",
+		"category": "pais",
+		"icon": "/flags/cl.svg"
+	},
+	{
+		"name": "CHINA",
+		"category": "pais",
+		"icon": "/flags/cn.svg"
+	},
+	{
+		"name": "COLÔMBIA",
+		"category": "pais",
+		"icon": "/flags/co.svg"
+	},
+	{
+		"name": "COREIA DO SUL",
+		"category": "pais",
+		"icon": "/flags/kr.svg"
+	},
+	{
+		"name": "COSTA RICA",
+		"category": "pais",
+		"icon": "/flags/cr.svg"
+	},
+	{
+		"name": "CUBA",
+		"category": "pais",
+		"icon": "/flags/cu.svg"
+	},
+	{
+		"name": "DINAMARCA",
+		"category": "pais",
+		"icon": "/flags/dk.svg"
+	},
+	{
+		"name": "EGITO",
+		"category": "pais",
+		"icon": "/flags/eg.svg"
+	},
+	{
+		"name": "EQUADOR",
+		"category": "pais",
+		"icon": "/flags/ec.svg"
+	},
+	{
+		"name": "ESPANHA",
+		"category": "pais",
+		"icon": "/flags/es.svg"
+	},
+	{
+		"name": "ESTADOS UNIDOS",
+		"category": "pais",
+		"icon": "/flags/us.svg"
+	},
+	{
+		"name": "FRANÇA",
+		"category": "pais",
+		"icon": "/flags/fr.svg"
+	},
+	{
+		"name": "GRÉCIA",
+		"category": "pais",
+		"icon": "/flags/gr.svg"
+	},
+	{
+		"name": "HOLANDA",
+		"category": "pais",
+		"icon": "/flags/nl.svg"
+	},
+	{
+		"name": "ÍNDIA",
+		"category": "pais",
+		"icon": "/flags/in.svg"
+	},
+	{
+		"name": "INGLATERRA",
+		"category": "pais",
+		"icon": "/flags/gb-eng.svg"
+	},
+	{
+		"name": "ITÁLIA",
+		"category": "pais",
+		"icon": "/flags/it.svg"
+	},
+	{
+		"name": "JAPÃO",
+		"category": "pais",
+		"icon": "/flags/jp.svg"
+	},
+	{
+		"name": "MÉXICO",
+		"category": "pais",
+		"icon": "/flags/mx.svg"
+	},
+	{
+		"name": "MOÇAMBIQUE",
+		"category": "pais",
+		"icon": "/flags/mz.svg"
+	},
+	{
+		"name": "NORUEGA",
+		"category": "pais",
+		"icon": "/flags/no.svg"
+	},
+	{
+		"name": "PARAGUAI",
+		"category": "pais",
+		"icon": "/flags/py.svg"
+	},
+	{
+		"name": "PERU",
+		"category": "pais",
+		"icon": "/flags/pe.svg"
+	},
+	{
+		"name": "PORTUGAL",
+		"category": "pais",
+		"icon": "/flags/pt.svg"
+	},
+	{
+		"name": "RÚSSIA",
+		"category": "pais",
+		"icon": "/flags/ru.svg"
+	},
+	{
+		"name": "SUÉCIA",
+		"category": "pais",
+		"icon": "/flags/se.svg"
+	},
+	{
+		"name": "SUÍÇA",
+		"category": "pais",
+		"icon": "/flags/ch.svg"
+	},
+	{
+		"name": "URUGUAI",
+		"category": "pais",
+		"icon": "/flags/uy.svg"
+	},
+	{
+		"name": "VENEZUELA",
+		"category": "pais",
+		"icon": "/flags/ve.svg"
+	}
+];
+
+// Combine all lists into the final base of data
+export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS, ...PAISES];
+

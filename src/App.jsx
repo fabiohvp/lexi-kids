@@ -502,12 +502,29 @@ export default function App() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-8">
               <div className="relative group">
                 <div className={`w-48 h-48 md:w-56 md:h-56 bg-sky-100 rounded-[35px] border-4 border-sky-300 flex items-center justify-center kid-shadow transform group-hover:scale-105 transition-transform ${
-                  currentWord.icon.length > 2 ? 'text-5xl md:text-6xl font-black' : currentWord.icon.length > 1 ? 'text-7xl md:text-8xl font-black' : 'text-8xl md:text-9xl'
+                  typeof currentWord.icon === 'string' && (currentWord.icon.startsWith('/') || currentWord.icon.startsWith('http'))
+                    ? 'p-4'
+                    : currentWord.icon.length > 2 ? 'text-5xl md:text-6xl font-black' : currentWord.icon.length > 1 ? 'text-7xl md:text-8xl font-black' : 'text-8xl md:text-9xl'
                 }`}>
-                  {currentWord.icon}
+                  {typeof currentWord.icon === 'string' && (currentWord.icon.startsWith('/') || currentWord.icon.startsWith('http')) ? (
+                    <img
+                      src={currentWord.icon}
+                      alt={currentWord.name}
+                      onError={(e) => {
+                        const filename = currentWord.icon.split('/').pop();
+                        if (filename && !e.target.dataset.fallback) {
+                          e.target.dataset.fallback = 'true';
+                          e.target.src = `https://flagcdn.com/${filename}`;
+                        }
+                      }}
+                      className="w-32 h-24 md:w-40 md:h-28 object-contain rounded-2xl shadow-md border-2 border-slate-200"
+                    />
+                  ) : (
+                    currentWord.icon
+                  )}
                 </div>
                 <span className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 border-2 border-yellow-500 text-yellow-900 font-bold px-4 py-1 rounded-full text-xs tracking-widest uppercase">
-                  {currentWord.category === 'animal' ? '🦁 ANIMAL' : currentWord.category === 'numero' ? '🔢 NÚMERO' : '🛋️ OBJETO'}
+                  {currentWord.category === 'animal' ? '🦁 ANIMAL' : currentWord.category === 'numero' ? '🔢 NÚMERO' : currentWord.category === 'pais' ? '🚩 PAÍS' : '🛋️ OBJETO'}
                 </span>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Volume2, Trash2, ArrowRight, ArrowLeft, Download, RotateCcw } from 'lucide-react';
-import { OBJETOS_COMUNS, ANIMAIS_COMUNS, NUMEROS } from './database';
+import { OBJETOS_COMUNS, ANIMAIS_COMUNS, NUMEROS, PAISES } from './database';
 
 export default function Test({ onBack }) {
   // Mantém a lista de palavras unificada em memória para edição em tempo real
@@ -10,7 +10,7 @@ export default function Test({ onBack }) {
 
   // Inicializa os estados locais a partir das constantes importadas apenas uma vez no mount (mantém ordem estável durante edição)
   useEffect(() => {
-    const combined = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS];
+    const combined = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS, ...PAISES];
     const sorted = combined.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
     setWords(sorted);
   }, []);
@@ -87,7 +87,7 @@ export default function Test({ onBack }) {
   // Restaura o banco de dados original em memória
   const handleReset = () => {
     if (window.confirm("Deseja redefinir a base de dados em memória para o padrão original?")) {
-      const combined = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS];
+      const combined = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS, ...PAISES];
       const sorted = combined.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
       setWords(sorted);
       setCurrentIndex(0);
@@ -100,6 +100,7 @@ export default function Test({ onBack }) {
     const objetos = words.filter(w => w.category === 'objeto');
     const animais = words.filter(w => w.category === 'animal');
     const numeros = words.filter(w => w.category === 'numero');
+    const paises = words.filter(w => w.category === 'pais');
 
     const fileContent = `// Banco de dados de objetos comuns e animais comuns editado
 export const OBJETOS_COMUNS = ${JSON.stringify(objetos, null, 2)};
@@ -108,8 +109,10 @@ export const ANIMAIS_COMUNS = ${JSON.stringify(animais, null, 2)};
 
 export const NUMEROS = ${JSON.stringify(numeros, null, 2)};
 
-// Combine both lists into the final base of data
-export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS];
+export const PAISES = ${JSON.stringify(paises, null, 2)};
+
+// Combine all lists into the final base of data
+export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS, ...PAISES];
 `;
 
     const blob = new Blob([fileContent], { type: 'text/javascript' });
@@ -234,12 +237,29 @@ export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS];
               {/* Representação Visual da Palavra */}
               <div className="relative group">
                 <div className={`w-48 h-48 md:w-56 md:h-56 bg-sky-100 rounded-[35px] border-4 border-sky-300 flex items-center justify-center kid-shadow transform group-hover:scale-105 transition-transform ${
-                  currentWord.icon.length > 2 ? 'text-5xl md:text-6xl font-black' : currentWord.icon.length > 1 ? 'text-7xl md:text-8xl font-black' : 'text-8xl md:text-9xl'
+                  typeof currentWord.icon === 'string' && (currentWord.icon.startsWith('/') || currentWord.icon.startsWith('http'))
+                    ? 'p-4'
+                    : currentWord.icon.length > 2 ? 'text-5xl md:text-6xl font-black' : currentWord.icon.length > 1 ? 'text-7xl md:text-8xl font-black' : 'text-8xl md:text-9xl'
                 }`}>
-                  {currentWord.icon}
+                  {typeof currentWord.icon === 'string' && (currentWord.icon.startsWith('/') || currentWord.icon.startsWith('http')) ? (
+                    <img
+                      src={currentWord.icon}
+                      alt={currentWord.name}
+                      onError={(e) => {
+                        const filename = currentWord.icon.split('/').pop();
+                        if (filename && !e.target.dataset.fallback) {
+                          e.target.dataset.fallback = 'true';
+                          e.target.src = `https://flagcdn.com/${filename}`;
+                        }
+                      }}
+                      className="w-32 h-24 md:w-40 md:h-28 object-contain rounded-2xl shadow-md border-2 border-slate-200"
+                    />
+                  ) : (
+                    currentWord.icon
+                  )}
                 </div>
                 <span className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 border-2 border-yellow-500 text-yellow-900 font-bold px-4 py-1 rounded-full text-xs tracking-widest uppercase">
-                  {currentWord.category === 'animal' ? '🦁 ANIMAL' : currentWord.category === 'numero' ? '🔢 NÚMERO' : '🛋️ OBJETO'}
+                  {currentWord.category === 'animal' ? '🦁 ANIMAL' : currentWord.category === 'numero' ? '🔢 NÚMERO' : currentWord.category === 'pais' ? '🚩 PAÍS' : '🛋️ OBJETO'}
                 </span>
               </div>
 
