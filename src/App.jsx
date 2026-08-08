@@ -2,12 +2,14 @@ import { Award, Play, Settings, SkipForward, Sparkles, Trophy, Volume2 } from 'l
 import { useEffect, useRef, useState } from 'react';
 import { PALAVRAS_BASE } from './database';
 import Test from './Test';
+import Reading from './Reading';
 
 const audioCache = new Map();
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 export default function App() {
+  const [gameMode, setGameMode] = useState('writing'); // 'writing' | 'reading'
   const [gameStarted, setGameStarted] = useState(false);
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
@@ -353,6 +355,10 @@ export default function App() {
     }
   };
 
+  if (gameMode === 'reading') {
+    return <Reading onBackToMenu={() => setGameMode('writing')} />;
+  }
+
   if (showTest) {
     return <Test onBack={() => { setShowTest(false); selectNextWord(level); }} />;
   }
@@ -382,7 +388,13 @@ export default function App() {
               className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-2xl rounded-3xl border-b-8 border-emerald-700 hover:border-b-4 hover:translate-y-[4px] active:translate-y-[8px] active:border-b-0 transition-all shadow-lg"
             >
               <Play className="w-8 h-8 fill-current" />
-              JOGAR!
+              ✍️ JOGO DA ESCRITA
+            </button>
+            <button
+              onClick={() => setGameMode('reading')}
+              className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-sky-500 hover:bg-sky-400 text-white font-black text-2xl rounded-3xl border-b-8 border-sky-700 hover:border-b-4 hover:translate-y-[4px] active:translate-y-[8px] active:border-b-0 transition-all shadow-lg"
+            >
+              📖 JOGO DA LEITURA
             </button>
             {isLocalhost && (
               <button
@@ -526,6 +538,12 @@ export default function App() {
         </div>
 
         <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4">
+          <button
+            onClick={() => setGameMode('reading')}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 hover:bg-sky-400 text-white font-black text-xs md:text-sm rounded-2xl border-b-4 border-sky-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] transition-all shadow-sm"
+          >
+            📖 LEITURA
+          </button>
           {isLocalhost && (
             <button
               onClick={() => setShowTest(true)}
