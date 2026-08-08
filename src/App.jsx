@@ -1,8 +1,8 @@
 import { Award, Play, Settings, SkipForward, Sparkles, Trophy, Volume2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { PALAVRAS_BASE } from './database';
-import Test from './Test';
 import Reading from './Reading';
+import Test from './Test';
 
 const audioCache = new Map();
 const isLocalhost = typeof window !== 'undefined' && 
@@ -394,7 +394,7 @@ export default function App() {
               onClick={() => setGameMode('reading')}
               className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-sky-500 hover:bg-sky-400 text-white font-black text-2xl rounded-3xl border-b-8 border-sky-700 hover:border-b-4 hover:translate-y-[4px] active:translate-y-[8px] active:border-b-0 transition-all shadow-lg"
             >
-              📖 JOGO DA LEITURA
+              📖 JOGO DA LEITURA (EM DESENVOLVIMENTO...)
             </button>
             {isLocalhost && (
               <button

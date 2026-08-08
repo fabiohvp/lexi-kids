@@ -1,6 +1,7 @@
 import { Award, Mic, Play, RotateCcw, Settings, SkipForward, Sparkles, Trophy } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { PALAVRAS_BASE } from './syllables';
+import { evaluateSyllablePhonetically, PhoneticMatchResult } from './phonetics';
 
 const audioCache = new Map();
 
@@ -17,6 +18,7 @@ export default function Reading({ onBackToMenu }: ReadingProps) {
   const [completedWord, setCompletedWord] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [phoneticInfo, setPhoneticInfo] = useState<PhoneticMatchResult | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | 'idle'>('idle');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -111,6 +113,7 @@ export default function Reading({ onBackToMenu }: ReadingProps) {
     setCurrentSyllableIndex(0);
     setCompletedWord(false);
     setTranscript('');
+    setPhoneticInfo(null);
     setFeedback('idle');
     setIsTransitioning(false);
   };
@@ -354,7 +357,13 @@ export default function Reading({ onBackToMenu }: ReadingProps) {
 
     if (!isFullWordStep) {
       const targetSyllable = currentWord.syllables[currentSyllableIndex];
-      const matched = isSyllableSpelledCorrectly(spokenText, targetSyllable);
+      const phoneticRes = evaluateSyllablePhonetically(spokenText, targetSyllable, 0.70);
+      const isSpelled = isSyllableSpelledCorrectly(spokenText, targetSyllable);
+      const isDirectMatch = isSyllableMatch(spokenText, targetSyllable);
+
+      const matched = phoneticRes.matched || isSpelled || isDirectMatch;
+
+      setPhoneticInfo(phoneticRes);
 
       if (matched) {
         if (recognitionRef.current) {
@@ -709,8 +718,38 @@ export default function Reading({ onBackToMenu }: ReadingProps) {
               </button>
 
               {transcript && (
-                <div className="bg-sky-50 border-2 border-sky-200 px-4 py-2 rounded-xl text-sky-800 font-bold text-sm md:text-base animate-fade-in">
-                  Você disse: "{transcript}"
+                <div className="bg-sky-50 border-2 border-sky-200 px-5 py-3 rounded-2xl text-sky-900 font-bold text-sm md:text-base animate-fade-in flex flex-col items-center gap-2 max-w-md w-full shadow-sm">
+                  <div>
+                    Você disse: <span className="font-black text-sky-950">"{transcript}"</span>
+                  </div>
+                  {phoneticInfo && (
+                    <div className="flex flex-wrap items-center justify-center gap-2.5 text-xs md:text-sm font-semibold text-sky-800 bg-white/80 px-3.5 py-2 rounded-xl border border-sky-200 w-full shadow-inner">
+                      <div className="flex items-center gap-1">
+                        <span>esperado =</span>
+                        <code className="bg-emerald-100 text-emerald-900 px-1.5 py-0.5 rounded font-mono font-black border border-emerald-300">
+                          /{phoneticInfo.expectedPhonemes}/
+                        </code>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>recebido =</span>
+                        <code className="bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded font-mono font-black border border-purple-300">
+                          /{phoneticInfo.spokenPhonemes || '-'}/
+                        </code>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>score =</span>
+                        <span
+                          className={`font-black px-2 py-0.5 rounded-lg ${
+                            phoneticInfo.score >= 0.70
+                              ? 'bg-emerald-500 text-white'
+                              : 'bg-amber-400 text-amber-950'
+                          }`}
+                        >
+                          {phoneticInfo.score.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
