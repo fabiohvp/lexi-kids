@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Menu from './Menu';
 import WritingGame from './WritingGame';
+import ReadingGame from './ReadingGame';
 import Test from './Test';
 
 type GameMode = 'menu' | 'writing' | 'reading' | 'test';
@@ -14,7 +15,7 @@ export default function App() {
   const [levelPoints, setLevelPoints] = useState<number>(() => {
     const saved = localStorage.getItem('lexi_kids_level_points');
     const parsed = Number(saved);
-    return (parsed >= 10 && parsed <= 50) ? parsed : 10;
+    return (parsed >= 10 && parsed <= 200) ? parsed : 100;
   });
 
   const [startLevel, setStartLevel] = useState<number>(() => {
@@ -24,7 +25,7 @@ export default function App() {
   });
 
   const handleLevelPointsChange = (value: number) => {
-    const val = Math.max(10, Math.min(50, value));
+    const val = Math.max(10, Math.min(200, value));
     setLevelPoints(val);
     localStorage.setItem('lexi_kids_level_points', val.toString());
   };
@@ -46,6 +47,19 @@ export default function App() {
         startLevel={startLevel}
         onBackToMenu={() => setGameMode('menu')}
         onSwitchToReading={() => setGameMode('reading')}
+        onSwitchToTest={() => setGameMode('test')}
+        isLocalhost={isLocalhost}
+      />
+    );
+  }
+
+  if (gameMode === 'reading') {
+    return (
+      <ReadingGame
+        levelPoints={levelPoints}
+        startLevel={startLevel}
+        onBackToMenu={() => setGameMode('menu')}
+        onSwitchToWriting={() => setGameMode('writing')}
         onSwitchToTest={() => setGameMode('test')}
         isLocalhost={isLocalhost}
       />

@@ -1,18 +1,7 @@
 import { Award, SkipForward, Sparkles, Trophy, Volume2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { PALAVRAS_BASE } from './words';
-
-export interface WordItem {
-  name: string;
-  category: string;
-  icon: string;
-}
-
-export interface WordLayoutItem {
-  char: string;
-  isHidden: boolean;
-  index: number;
-}
+import { WordItem, WordLayoutItem, MistakeStatus } from './types';
 
 export interface WritingGameProps {
   levelPoints: number;
@@ -22,8 +11,6 @@ export interface WritingGameProps {
   onSwitchToTest: () => void;
   isLocalhost: boolean;
 }
-
-type MistakeStatus = 'correct' | 'incorrect';
 
 const audioCache = new Map<string, HTMLAudioElement>();
 

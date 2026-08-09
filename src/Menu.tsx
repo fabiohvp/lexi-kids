@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Settings } from 'lucide-react';
+import { Play, Settings, BookOpen } from 'lucide-react';
 
 export interface MenuProps {
   onStartWritingGame: () => void;
@@ -53,7 +53,8 @@ export default function Menu({
             onClick={onStartReadingGame}
             className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-sky-500 hover:bg-sky-400 text-white font-black text-2xl rounded-3xl border-b-8 border-sky-700 hover:border-b-4 hover:translate-y-[4px] active:translate-y-[8px] active:border-b-0 transition-all shadow-lg"
           >
-            📖 JOGO DA LEITURA (EM DESENVOLVIMENTO...)
+            <BookOpen className="w-8 h-8" />
+            📖 JOGO DA LEITURA
           </button>
           {isLocalhost && (
             <button
@@ -83,19 +84,19 @@ export default function Menu({
                 <div className="flex items-center justify-center gap-4 mb-4">
                   <button
                     type="button"
-                    onClick={() => onLevelPointsChange(levelPoints - 1)}
+                    onClick={() => onLevelPointsChange(levelPoints - 10)}
                     disabled={levelPoints <= 10}
                     className="w-12 h-12 bg-purple-100 hover:bg-purple-200 disabled:opacity-40 disabled:hover:bg-purple-100 text-purple-700 font-black text-2xl rounded-2xl flex items-center justify-center border-b-4 border-purple-300 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-sm"
                   >
                     -
                   </button>
-                  <span className="text-4xl font-black text-purple-600 w-16 text-center">
+                  <span className="text-3xl font-black text-purple-600 w-20 text-center">
                     {levelPoints}
                   </span>
                   <button
                     type="button"
-                    onClick={() => onLevelPointsChange(levelPoints + 1)}
-                    disabled={levelPoints >= 50}
+                    onClick={() => onLevelPointsChange(levelPoints + 10)}
+                    disabled={levelPoints >= 200}
                     className="w-12 h-12 bg-purple-100 hover:bg-purple-200 disabled:opacity-40 disabled:hover:bg-purple-100 text-purple-700 font-black text-2xl rounded-2xl flex items-center justify-center border-b-4 border-purple-300 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-sm"
                   >
                     +
@@ -104,14 +105,15 @@ export default function Menu({
                 <input
                   type="range"
                   min="10"
-                  max="50"
+                  max="200"
+                  step="10"
                   value={levelPoints}
                   onChange={(e) => onLevelPointsChange(Number(e.target.value))}
                   className="w-full h-3 bg-purple-100 rounded-lg appearance-none cursor-pointer accent-purple-600 mt-2"
                 />
                 <div className="flex justify-between text-xs font-bold text-purple-400 mt-2 px-1">
                   <span>Mínimo: 10</span>
-                  <span>Máximo: 50</span>
+                  <span>Máximo: 200</span>
                 </div>
               </div>
 
@@ -148,18 +150,14 @@ export default function Menu({
                   onChange={(e) => onStartLevelChange(Number(e.target.value))}
                   className="w-full h-3 bg-purple-100 rounded-lg appearance-none cursor-pointer accent-purple-600 mt-2"
                 />
-                <div className="flex justify-between text-xs font-bold text-purple-400 mt-2 px-1">
-                  <span>Nível 1 (Fácil)</span>
-                  <span>Nível 8 (Máx)</span>
-                </div>
               </div>
             </div>
 
             <button
               onClick={() => setShowSettings(false)}
-              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-purple-500 hover:bg-purple-400 text-white font-black text-xl rounded-3xl border-b-8 border-purple-700 hover:border-b-4 hover:translate-y-[4px] active:translate-y-[8px] active:border-b-0 transition-all shadow-lg"
+              className="w-full py-4 bg-purple-600 hover:bg-purple-500 text-white font-black text-xl rounded-2xl border-b-4 border-purple-800 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md"
             >
-              PRONTO! 👍
+              OK, PRONTO!
             </button>
           </div>
         </div>
