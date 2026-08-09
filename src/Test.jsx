@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Volume2, Trash2, ArrowRight, ArrowLeft, Download, RotateCcw } from 'lucide-react';
-import { OBJETOS_COMUNS, ANIMAIS_COMUNS, NUMEROS, PAISES } from './database';
+import { ArrowLeft, ArrowRight, Download, RotateCcw, Trash2, Volume2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ANIMAIS_COMUNS, NUMEROS, OBJETOS_COMUNS, PAISES } from './words';
 
 export default function Test({ onBack }) {
   // Mantém a lista de palavras unificada em memória para edição em tempo real
@@ -95,7 +95,7 @@ export default function Test({ onBack }) {
     }
   };
 
-  // Gera o arquivo database.js filtrando de volta por categoria
+  // Gera o arquivo words.js filtrando de volta por categoria
   const handleDownload = () => {
     const objetos = words.filter(w => w.category === 'objeto');
     const animais = words.filter(w => w.category === 'animal');
@@ -119,7 +119,7 @@ export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS, 
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'database.js';
+    link.download = 'words.js';
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -177,7 +177,7 @@ export const PALAVRAS_BASE = [...OBJETOS_COMUNS, ...ANIMAIS_COMUNS, ...NUMEROS, 
             className="flex items-center gap-2 px-4 py-2.5 bg-sky-500 hover:bg-sky-400 text-white font-black text-sm md:text-base rounded-2xl border-b-4 border-sky-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md"
           >
             <Download className="w-5 h-5" />
-            BAIXAR DATABASE.JS
+            BAIXAR words.JS
           </button>
 
           <button

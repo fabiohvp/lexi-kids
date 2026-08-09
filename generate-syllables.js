@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { OBJETOS_COMUNS, ANIMAIS_COMUNS, NUMEROS, PAISES, PALAVRAS_BASE } from './src/database.js';
+import { ANIMAIS_COMUNS, NUMEROS, OBJETOS_COMUNS, PAISES, PALAVRAS_BASE } from './src/words.js';
 
 function splitPortugueseWord(word) {
 	if (!word) return [];
@@ -116,7 +116,7 @@ const paises = processList(PAISES);
 const palavrasBase = processList(PALAVRAS_BASE);
 
 const content = `// Banco de dados de palavras com sílabas separadas
-// Gerado automaticamente a partir de database.js
+// Gerado automaticamente a partir de words.js
 
 export const OBJETOS_COMUNS = ${JSON.stringify(objetosComuns, null, '\t')};
 

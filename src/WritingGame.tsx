@@ -1,0 +1,547 @@
+import { Award, SkipForward, Sparkles, Trophy, Volume2 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { PALAVRAS_BASE } from './words';
+
+export interface WordItem {
+  name: string;
+  category: string;
+  icon: string;
+}
+
+export interface WordLayoutItem {
+  char: string;
+  isHidden: boolean;
+  index: number;
+}
+
+export interface WritingGameProps {
+  levelPoints: number;
+  startLevel: number;
+  onBackToMenu: () => void;
+  onSwitchToReading: () => void;
+  onSwitchToTest: () => void;
+  isLocalhost: boolean;
+}
+
+type MistakeStatus = 'correct' | 'incorrect';
+
+const audioCache = new Map<string, HTMLAudioElement>();
+
+export default function WritingGame({
+  levelPoints,
+  startLevel,
+  onBackToMenu,
+  onSwitchToReading,
+  onSwitchToTest,
+  isLocalhost,
+}: WritingGameProps) {
+  const [score, setScore] = useState<number>(0);
+  const [level, setLevel] = useState<number>(startLevel);
+  const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
+  const [wordLayout, setWordLayout] = useState<WordLayoutItem[]>([]);
+  const [userInputs, setUserInputs] = useState<Record<number, string>>({});
+  const [completed, setCompleted] = useState<boolean>(false);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+  const [transitionDirection, setTransitionDirection] = useState<'enter' | 'exit'>('enter');
+  const [mistakes, setMistakes] = useState<Record<number, MistakeStatus>>({});
+  
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const wordHistoryRef = useRef<string[]>([]);
+
+  // Inicializa o primeiro jogo
+  useEffect(() => {
+    selectNextWord(startLevel);
+  }, []);
+
+  // Atualiza o nível com base na pontuação
+  useEffect(() => {
+    const calculatedLevel = Math.floor(score / levelPoints) + startLevel;
+    setLevel(calculatedLevel);
+
+    if (score > 0 && score % levelPoints === 0) {
+      playSound("/level-up.mp3");
+    }
+  }, [score, levelPoints, startLevel]);
+
+  async function playSound(src: string) {
+    let audio = audioCache.get(src);
+
+    if (!audio) {
+      audio = new Audio(src);
+      audioCache.set(src, audio);
+    }
+
+    audio.currentTime = 0;
+    await audio.play();
+  }
+
+  const speakWord = (wordText: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(wordText.toLowerCase());
+      utterance.lang = 'pt-BR';
+      utterance.rate = 0.85;
+      utterance.pitch = 1.25;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const focusActiveInput = () => {
+    if (!completed && wordLayout.length > 0) {
+      const firstMissingItem = wordLayout.find(item => item.isHidden && !userInputs[item.index]);
+      if (firstMissingItem && inputRefs.current[firstMissingItem.index]) {
+        inputRefs.current[firstMissingItem.index]?.focus();
+      }
+    }
+  };
+
+  const handlePageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('input')) {
+      return;
+    }
+    focusActiveInput();
+  };
+
+  const getLevelParameters = (wordLength: number, lvl: number) => {
+    let missingCount = 1;
+    let allowedLengths: [number, number] = [2, 100];
+
+    if (lvl === 1) {
+      allowedLengths = [2, 3];
+      missingCount = 1;
+    } else if (lvl === 2) {
+      allowedLengths = [2, 4];
+      missingCount = 2;
+    } else if (lvl === 3) {
+      allowedLengths = [3, 5];
+      missingCount = 2;
+    } else if (lvl === 4) {
+      allowedLengths = [4, 5];
+      missingCount = Math.floor(Math.random() * 2) + 2;
+    } else if (lvl === 5) {
+      allowedLengths = [3, 5];
+      missingCount = Math.floor(Math.random() * 2) + 2;
+    } else if (lvl === 6) {
+      allowedLengths = [3, 6];
+      missingCount = Math.floor(Math.random() * 3) + 2;
+    } else if (lvl === 7) {
+      allowedLengths = [4, 100];
+      const minL = Math.min(wordLength, 4);
+      const minMissing = minL - 1;
+      const maxMissing = Math.max(wordLength - 2, 1);
+      missingCount = Math.floor(Math.random() * (maxMissing - minMissing + 1)) + minMissing;
+    } else {
+      allowedLengths = [2, 100];
+      missingCount = Math.floor(Math.random() * (wordLength - 1)) + 1;
+    }
+
+    if (missingCount >= wordLength) {
+      missingCount = Math.max(1, wordLength - 1);
+    }
+
+    return { allowedLengths, missingCount };
+  };
+
+  const selectNextWord = (currentLvl: number) => {
+    let filtered = PALAVRAS_BASE.filter((w: WordItem) => {
+      const cleanLen = w.name.replace(/[^a-zA-Z]/g, '').length;
+      const params = getLevelParameters(cleanLen, currentLvl);
+      return cleanLen >= params.allowedLengths[0] && cleanLen <= params.allowedLengths[1];
+    });
+
+    if (filtered.length === 0) {
+      filtered = PALAVRAS_BASE;
+    }
+
+    const history = wordHistoryRef.current;
+    const available = filtered.filter((w: WordItem) => !history.includes(w.name));
+    if (available.length > 0) {
+      filtered = available;
+    }
+
+    const wordObj = filtered[Math.floor(Math.random() * filtered.length)];
+
+    const nextHistory = [...history, wordObj.name];
+    if (nextHistory.length > 5) {
+      nextHistory.shift();
+    }
+    wordHistoryRef.current = nextHistory;
+    const cleanName = wordObj.name.toUpperCase();
+    const len = cleanName.length;
+
+    const { missingCount } = getLevelParameters(len, currentLvl);
+
+    const alphaIndices: number[] = [];
+    for (let i = 0; i < len; i++) {
+      if (/[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÚÜÇ]/.test(cleanName[i])) {
+        alphaIndices.push(i);
+      }
+    }
+
+    const shuffledIndices = [...alphaIndices].sort(() => Math.random() - 0.5);
+    const hiddenIndices = new Set(shuffledIndices.slice(0, missingCount));
+
+    const layout: WordLayoutItem[] = [];
+    for (let i = 0; i < len; i++) {
+      const char = cleanName[i];
+      const isHidden = hiddenIndices.has(i);
+      layout.push({
+        char,
+        isHidden,
+        index: i,
+      });
+    }
+
+    const initialInputs: Record<number, string> = {};
+    layout.forEach((item, index) => {
+      if (item.isHidden) {
+        initialInputs[index] = '';
+      }
+    });
+
+    setWordLayout(layout);
+    setUserInputs(initialInputs);
+    setMistakes({});
+    setCompleted(false);
+    setCurrentWord(wordObj);
+    setTransitionDirection('enter');
+    setIsTransitioning(false);
+    window.scrollTo(0, 0);
+
+    speakWord(wordObj.name);
+  };
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        if (currentWord) {
+          speakWord(currentWord.name);
+          focusActiveInput();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [currentWord, userInputs, wordLayout, completed]);
+
+  useEffect(() => {
+    focusActiveInput();
+  }, [wordLayout, completed]);
+
+  const handleInputChange = (index: number, val: string) => {
+    if (completed) return;
+
+    if (val && val.endsWith(' ')) {
+      if (currentWord) {
+        speakWord(currentWord.name);
+      }
+      const prevVal = userInputs[index] || '';
+      setUserInputs(prev => ({ ...prev, [index]: prevVal }));
+      setTimeout(() => {
+        if (inputRefs.current[index]) {
+          inputRefs.current[index]?.focus();
+        }
+      }, 50);
+      return;
+    }
+
+    const charTyped = val.toUpperCase().trim().slice(-1);
+    if (!charTyped) {
+      setUserInputs(prev => ({ ...prev, [index]: '' }));
+      setMistakes(prev => {
+        const next = { ...prev };
+        delete next[index];
+        return next;
+      });
+      return;
+    }
+
+    const expectedChar = wordLayout[index].char;
+    const normalize = (c: string) => c.normalize("NFD").replace(/[̀-ͯ]/g, "");
+    const isCorrect = normalize(charTyped) === normalize(expectedChar);
+
+    setUserInputs(prev => ({ ...prev, [index]: charTyped }));
+    setMistakes(prev => ({ ...prev, [index]: isCorrect ? 'correct' : 'incorrect' }));
+
+    if (isCorrect) {
+      const nextMissingIndex = wordLayout.findIndex((item, idx) => item.isHidden && idx > index && !userInputs[idx]);
+      if (nextMissingIndex !== -1 && inputRefs.current[nextMissingIndex]) {
+        inputRefs.current[nextMissingIndex]?.focus();
+      } else {
+        setTimeout(() => checkWordCompletion({ ...userInputs, [index]: charTyped }), 80);
+      }
+    }
+  };
+
+  const checkWordCompletion = (currentInputs: Record<number, string>) => {
+    let allRight = true;
+    wordLayout.forEach(item => {
+      if (item.isHidden) {
+        const typed = currentInputs[item.index];
+        const expected = item.char;
+        const normalize = (c: string) => c ? c.normalize("NFD").replace(/[̀-ͯ]/g, "") : "";
+        if (normalize(typed) !== normalize(expected)) {
+          allRight = false;
+        }
+      }
+    });
+
+    if (allRight) {
+      setCompleted(true);
+      playSound("/point-up.mp3");
+
+      setScore(prevScore => {
+        const nextScore = prevScore + 1;
+        const nextLvl = Math.floor(nextScore / levelPoints) + startLevel;
+
+        setTimeout(() => {
+          setTransitionDirection('exit');
+          setIsTransitioning(true);
+
+          setTimeout(() => {
+            selectNextWord(nextLvl);
+          }, 500);
+
+        }, 1500);
+
+        return nextScore;
+      });
+    }
+  };
+
+  const handleSkip = () => {
+    if (completed || isTransitioning) return;
+    
+    setTransitionDirection('exit');
+    setIsTransitioning(true);
+
+    const currentLvl = Math.floor(score / levelPoints) + startLevel;
+
+    setTimeout(() => {
+      selectNextWord(currentLvl);
+    }, 500);
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !userInputs[index]) {
+      const prevMissingIndex = [...wordLayout]
+        .reverse()
+        .findIndex((item) => item.isHidden && item.index < index);
+      
+      if (prevMissingIndex !== -1) {
+        const actualIndex = wordLayout.length - 1 - prevMissingIndex;
+        if (inputRefs.current[actualIndex]) {
+          inputRefs.current[actualIndex]?.focus();
+        }
+      }
+    }
+  };
+
+  return (
+    <div onClick={handlePageClick} className="min-h-screen flex flex-col justify-between p-4 md:p-6 text-[#2D3748] overflow-x-hidden">
+      {/* Top Header stats bar */}
+      <header className="w-full max-w-4xl mx-auto flex flex-col sm:flex-row gap-4 items-center justify-between bg-white/80 backdrop-blur-md rounded-3xl p-4 md:px-8 kid-shadow border-4 border-blue-400">
+        <div 
+          onClick={onBackToMenu} 
+          className="flex items-center gap-3 cursor-pointer select-none hover:opacity-80 active:scale-95 transition-all"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { 
+            if (e.key === 'Enter' || e.key === ' ') {
+              onBackToMenu();
+            }
+          }}
+        >
+          <img src="/logo.svg" alt="Lexi Kids Logo" className="w-12 h-12 rounded-2xl border-2 border-blue-300 shadow-sm animate-bounce-gentle object-cover" />
+          <div className="text-center sm:text-left">
+            <h1 className="text-xl md:text-2xl font-black text-blue-600 tracking-wide">LEXI KIDS</h1>
+            <p className="text-xs md:text-sm font-bold text-gray-500 hidden sm:block">Aprender brincando é divertido!</p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4">
+          <button
+            onClick={onSwitchToReading}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 hover:bg-sky-400 text-white font-black text-xs md:text-sm rounded-2xl border-b-4 border-sky-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] transition-all shadow-sm"
+          >
+            📖 LEITURA
+          </button>
+          {isLocalhost && (
+            <button
+              onClick={onSwitchToTest}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black text-xs md:text-sm rounded-2xl border-b-4 border-yellow-600 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] transition-all shadow-sm shadow-yellow-500/30"
+            >
+              ⚙️ TESTE
+            </button>
+          )}
+          <div className="flex items-center gap-1 bg-amber-100 px-3 py-1.5 rounded-2xl border-2 border-amber-300">
+            <Trophy className="w-5 h-5 text-amber-500" />
+            <span className="text-sm md:text-base font-black text-amber-700">PONTOS: {score}</span>
+          </div>
+          <div className="flex items-center gap-1 bg-purple-100 px-3 py-1.5 rounded-2xl border-2 border-purple-300">
+            <Award className="w-5 h-5 text-purple-500" />
+            <span className="text-sm md:text-base font-black text-purple-700">NÍVEL: {level}</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Game Screen */}
+      <main className="flex-1 w-full max-w-4xl mx-auto flex flex-col items-center justify-center my-6 overflow-hidden relative">
+        {currentWord ? (
+          <div className={`w-full bg-white rounded-[40px] p-6 md:p-12 kid-shadow border-8 border-orange-300 transition-all duration-500 transform 
+            ${transitionDirection === 'enter' ? 'translate-x-0 opacity-100 scale-100' : ''}
+            ${transitionDirection === 'exit' ? 'translate-x-[150%] opacity-0 scale-95' : ''}
+          `}>
+            {/* Interactive Image & Pronounce Audio Button */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-8">
+              <div className="relative group">
+                <div className={`w-48 h-48 md:w-56 md:h-56 bg-sky-100 rounded-[35px] border-4 border-sky-300 flex items-center justify-center kid-shadow transform group-hover:scale-105 transition-transform ${
+                  typeof currentWord.icon === 'string' && (currentWord.icon.startsWith('/') || currentWord.icon.startsWith('http'))
+                    ? 'p-4'
+                    : currentWord.icon.length > 2 ? 'text-5xl md:text-6xl font-black' : currentWord.icon.length > 1 ? 'text-7xl md:text-8xl font-black' : 'text-8xl md:text-9xl'
+                }`}>
+                  {typeof currentWord.icon === 'string' && (currentWord.icon.startsWith('/') || currentWord.icon.startsWith('http')) ? (
+                    <img
+                      src={currentWord.icon}
+                      alt={currentWord.name}
+                      onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                        const target = e.target as HTMLImageElement;
+                        const filename = currentWord.icon.split('/').pop();
+                        if (filename && !target.dataset.fallback) {
+                          target.dataset.fallback = 'true';
+                          target.src = `https://flagcdn.com/${filename}`;
+                        }
+                      }}
+                      className="w-32 h-24 md:w-40 md:h-28 object-contain rounded-2xl shadow-md border-2 border-slate-200"
+                    />
+                  ) : (
+                    currentWord.icon
+                  )}
+                </div>
+                <span className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 border-2 border-yellow-500 text-yellow-900 font-bold px-4 py-1 rounded-full text-xs tracking-widest uppercase">
+                  {currentWord.category === 'animal' ? '🦁 ANIMAL' : currentWord.category === 'numero' ? '🔢 NÚMERO' : currentWord.category === 'pais' ? '🚩 PAÍS' : '🛋️ OBJETO'}
+                </span>
+              </div>
+            </div>
+
+            {/* Alphabet Blocks / Game Play Board */}
+            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 my-8">
+              {wordLayout.map((item, idx) => {
+                const { char, isHidden } = item;
+                
+                if (completed) {
+                  return (
+                    <div
+                      key={idx}
+                      className="w-14 h-16 md:w-20 md:h-24 bg-emerald-100 text-emerald-600 border-4 border-emerald-400 rounded-2xl flex items-center justify-center text-3xl md:text-5xl font-extrabold shadow-md transform scale-105 animate-bounce-gentle"
+                    >
+                      {char}
+                    </div>
+                  );
+                }
+
+                if (!isHidden) {
+                  return (
+                    <div
+                      key={idx}
+                      className="w-14 h-16 md:w-20 md:h-24 bg-gray-100 text-gray-700 border-4 border-gray-300 rounded-2xl flex items-center justify-center text-3xl md:text-5xl font-extrabold shadow-sm"
+                    >
+                      {char}
+                    </div>
+                  );
+                }
+
+                const status = mistakes[idx];
+                let inputBgColor = 'bg-yellow-50 border-yellow-400 text-yellow-700 focus:border-yellow-500 focus:bg-yellow-100';
+                if (status === 'correct') {
+                  inputBgColor = 'bg-emerald-100 border-emerald-500 text-emerald-700';
+                } else if (status === 'incorrect') {
+                  inputBgColor = 'bg-red-100 border-red-500 text-red-600 animate-pulse';
+                }
+
+                return (
+                  <input
+                    key={idx}
+                    ref={(el) => { inputRefs.current[idx] = el; }}
+                    type="text"
+                    maxLength={2}
+                    value={userInputs[idx] || ''}
+                    onChange={(e) => handleInputChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(idx, e)}
+                    className={`w-14 h-16 md:w-20 md:h-24 text-center text-3xl md:text-5xl font-extrabold border-4 rounded-2xl focus:outline-none transition-all shadow-inner uppercase ${inputBgColor}`}
+                    disabled={completed}
+                    placeholder="?"
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                  />
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col items-center sm:items-start gap-4 w-full sm:w-auto">
+              <button
+                onClick={() => {
+                  speakWord(currentWord.name);
+                  focusActiveInput();
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-sm sm:text-base rounded-2xl border-b-4 border-emerald-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md"
+              >
+                <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                OUVIR PALAVRA
+              </button>
+              <button
+                onClick={handleSkip}
+                disabled={completed}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-amber-500 hover:bg-amber-400 text-white font-black text-sm sm:text-base rounded-2xl border-b-4 border-amber-700 hover:border-b-2 hover:translate-y-[2px] active:translate-y-[4px] active:border-b-0 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:border-b-0 disabled:translate-y-0"
+              >
+                <SkipForward className="w-5 h-5 sm:w-6 sm:h-6" />
+                PULAR PALAVRA
+              </button>
+              <div className="text-sm font-bold text-gray-400 self-center text-center sm:text-left max-w-xs space-y-1 w-full">
+                <p className="text-blue-500 text-center bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">⌨️ Aperte <b>Espaço</b> para ouvir!</p>
+              </div>
+            </div>
+
+            <div className="h-12 flex items-center justify-center">
+              {completed ? (
+                <div className="flex items-center gap-2 text-emerald-600 font-extrabold text-xl md:text-2xl animate-bounce">
+                  <Sparkles className="w-6 h-6 text-yellow-500" />
+                  MUITO BEM! VOCÊ CONSEGUIU! 🎉
+                  <Sparkles className="w-6 h-6 text-yellow-500" />
+                </div>
+              ) : (
+                <p className="text-gray-400 font-bold text-sm md:text-base animate-pulse">
+                  Preencha as letrinhas amarelas!
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-lg font-bold text-gray-500">Preparando próxima palavrinha...</p>
+          </div>
+        )}
+      </main>
+
+      {/* Rules Information Modal / Kids Footer */}
+      <footer className="w-full max-w-4xl mx-auto text-center text-xs md:text-sm font-bold text-sky-700 bg-sky-100/50 p-4 rounded-2xl border-2 border-sky-200">
+        <p>🎮 Como Funciona cada Nível (Você passa de nível a cada {levelPoints} acertos):</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-[10px] md:text-xs">
+          <div className="p-1.5 bg-white/80 rounded-lg">⭐ Nív 1: 2-3 Letras (1 faltante)</div>
+          <div className="p-1.5 bg-white/80 rounded-lg">⭐ Nív 2: 2-4 Letras (2 faltantes)</div>
+          <div className="p-1.5 bg-white/80 rounded-lg">⭐ Nív 3: 3-5 Letras (2 faltantes)</div>
+          <div className="p-1.5 bg-white/80 rounded-lg">⭐ Nív 4: 4-5 Letras (2-3 faltantes)</div>
+          <div className="p-1.5 bg-white/80 rounded-lg">⭐ Nív 5: 3-5 Letras (2-3 faltantes)</div>
+          <div className="p-1.5 bg-white/80 rounded-lg">⭐ Nív 6: 3-6 Letras (2-4 faltantes)</div>
+          <div className="p-1.5 bg-white/80 rounded-lg">⭐ Nív 7: Desafio Avançado</div>
+          <div className="p-1.5 bg-white/80 rounded-lg">⭐ Nív 8+: Modo Mestre! 👑</div>
+        </div>
+      </footer>
+    </div>
+  );
+}

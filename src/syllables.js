@@ -1,5 +1,5 @@
 // Banco de dados de palavras com sílabas separadas
-// Gerado automaticamente a partir de database.js
+// Gerado automaticamente a partir de words.js
 
 export const OBJETOS_COMUNS = [
 	{
